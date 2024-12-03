@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 # Список ключевых слов для поиска
 KEYWORDS = ['дизайн', 'фото', 'web', 'python']
 
+
 async def fetch_articles(session, url):
     async with session.get(url) as response:
         if response.status == 200:
@@ -20,6 +21,7 @@ async def fetch_articles(session, url):
         else:
             logger.error(f"Failed to fetch {url}: {response.status}")
             return None
+
 
 def parse_article(article_soup):
     header = article_soup.select_one('h1.tm-title').find('span')
@@ -33,10 +35,11 @@ def parse_article(article_soup):
         'text': text
     }
 
+
 async def process_article(session, article, parsed_data):
     link = 'https://habr.com' + article.select_one('a.tm-title__link')['href']
     article_soup = await fetch_articles(session, link)
-    
+
     if article_soup:
         article_data = parse_article(article_soup)
         for word in KEYWORDS:
@@ -55,10 +58,11 @@ async def process_article(session, article, parsed_data):
                     f'title: {article_data["title"]}\n'
                     f'author: {article_data["author"]}\n'
                     f'time: {article_data["time"]}\n\n'
-                    )
+                )
                 break
     else:
         logger.error(f"Failed to process article: {link}")
+
 
 async def main():
     async with aiohttp.ClientSession() as session:
@@ -79,6 +83,7 @@ async def main():
                 f.write(json.dumps(parsed_data, ensure_ascii=False, indent=4))
         else:
             logger.error('Failed to fetch main page')
+
 
 # Запуск асинхронной функции
 asyncio.run(main())
